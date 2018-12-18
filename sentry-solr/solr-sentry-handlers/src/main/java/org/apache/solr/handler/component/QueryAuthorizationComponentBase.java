@@ -16,7 +16,6 @@ import org.apache.solr.common.util.NamedList;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public abstract class QueryAuthorizationComponentBase extends SearchComponent {
 
@@ -48,19 +47,25 @@ public abstract class QueryAuthorizationComponentBase extends SearchComponent {
       return;
     }
 
-    prepare(rb, userName, new CachingSupplier<>(() -> getRoles(rb.req, userName)));
+    QueryAuthorizationContext context = new QueryAuthorizationContext(userName, new QueryAuthorizationContext.CachingSupplier<>(() -> getRoles(rb.req, userName)));
+    initContext(rb, context);
+    prepare(rb, context);
   }
 
-  protected void prepare(ResponseBuilder rb, String userName, Supplier<Set<String>> rolesSupplier) throws IOException {
-    SolrParams newParams = prepareParams(rb.req.getParams(), userName, rolesSupplier);
+  protected void initContext(ResponseBuilder rb, QueryAuthorizationContext context) throws IOException {
+
+  }
+
+  protected void prepare(ResponseBuilder rb, QueryAuthorizationContext context) throws IOException {
+    SolrParams newParams = prepareParams(rb.req.getParams(), context);
     rb.req.setParams(newParams);
   }
 
-  protected SolrParams prepareParams(SolrParams params, String userName, Supplier<Set<String>> rolesSupplier) throws IOException {
+  protected SolrParams prepareParams(SolrParams params, QueryAuthorizationContext context) throws IOException {
     return params;
   }
 
- @Override
+  @Override
   public void process(ResponseBuilder rb) throws IOException {
   }
 
@@ -118,27 +123,4 @@ public abstract class QueryAuthorizationComponentBase extends SearchComponent {
     }
   }
 
-  private static final class CachingSupplier<T> implements Supplier<T> {
-    private final Supplier<? extends T> internalSupplier;
-    private Supplier<T> cached = null;
-
-    public CachingSupplier(Supplier<? extends T> internalSupplier) {
-      this.internalSupplier = internalSupplier;
-    }
-
-    @Override
-    public T get() {
-      if (cached != null) {
-        return cached.get();
-      }
-      synchronized (this) {
-        if (cached != null) {
-          return cached.get();
-        }
-        T result = internalSupplier.get();
-        cached = () -> result;
-        return result;
-      }
-    }
-  }
 }

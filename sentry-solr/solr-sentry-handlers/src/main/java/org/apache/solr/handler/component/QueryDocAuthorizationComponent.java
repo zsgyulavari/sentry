@@ -24,7 +24,6 @@ import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class QueryDocAuthorizationComponent extends QueryAuthorizationComponentBase {
   public static final String AUTH_FIELD_PROP = "sentryAuthField";
@@ -65,8 +64,8 @@ public class QueryDocAuthorizationComponent extends QueryAuthorizationComponentB
   }
 
   @Override
-  protected void prepare(ResponseBuilder rb, String userName, Supplier<Set<String>> rolesSupplier) {
-    Set<String> roles = rolesSupplier.get();
+  protected void prepare(ResponseBuilder rb, QueryAuthorizationContext context) {
+    Set<String> roles = context.getRoles();
     if (roles != null && !roles.isEmpty()) {
       String filterQuery = getFilterQueryStr(roles);
 
@@ -74,12 +73,12 @@ public class QueryDocAuthorizationComponent extends QueryAuthorizationComponentB
       newParams.add("fq", filterQuery);
       rb.req.setParams(newParams);
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Adding filter query {} for user {} with roles {}", new Object[]{filterQuery, userName, roles});
+        LOG.debug("Adding filter query {} for user {} with roles {}", filterQuery, context.getUserName(), roles);
       }
 
     } else {
       throw new SolrException(SolrException.ErrorCode.UNAUTHORIZED,
-          "Request from user: " + userName +
+          "Request from user: " + context.getUserName() +
               " rejected because user is not associated with any roles");
     }
   }
