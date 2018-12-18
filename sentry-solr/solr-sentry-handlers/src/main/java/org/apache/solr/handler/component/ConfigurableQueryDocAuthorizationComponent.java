@@ -13,6 +13,14 @@ public class ConfigurableQueryDocAuthorizationComponent extends QueryAuthorizati
   private final List<QueryAuthContextInitializer> contextInitializers = new ArrayList<>();
   private final List<QueryAuthParamsPreparator> paramsPreparators = new ArrayList<>();
 
+  protected void registerContextInitializer(QueryAuthContextInitializer initializer) {
+    contextInitializers.add(initializer);
+  }
+
+  protected void registerParamsPreparator(QueryAuthParamsPreparator preparator) {
+    paramsPreparators.add(preparator);
+  }
+
   @Override
   public void init(NamedList args) {
     super.init(args);
@@ -42,7 +50,6 @@ public class ConfigurableQueryDocAuthorizationComponent extends QueryAuthorizati
     rb.req.setParams(newParams);
   }
 
-
   @Override
   public String getDescription() {
     return null;
@@ -55,5 +62,4 @@ public class ConfigurableQueryDocAuthorizationComponent extends QueryAuthorizati
   public interface QueryAuthParamsPreparator {
     void prepareParams(SolrParams params, QueryAuthorizationContext context) throws IOException;
   }
-
 }
