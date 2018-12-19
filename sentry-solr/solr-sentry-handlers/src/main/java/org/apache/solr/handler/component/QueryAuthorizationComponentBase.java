@@ -1,5 +1,6 @@
 package org.apache.solr.handler.component;
 
+import org.apache.solr.handler.component.QueryAuthorizationContext.CachingSupplier;
 import org.apache.sentry.binding.solr.authz.SentrySolrPluginImpl;
 import org.apache.sentry.core.common.exception.SentryUserException;
 import org.apache.solr.common.SolrException;
@@ -47,13 +48,12 @@ public abstract class QueryAuthorizationComponentBase extends SearchComponent {
       return;
     }
 
-    QueryAuthorizationContext context = new QueryAuthorizationContext(userName, new QueryAuthorizationContext.CachingSupplier<>(() -> getRoles(rb.req, userName)));
+    QueryAuthorizationContext context = new QueryAuthorizationContext(userName, new CachingSupplier<>(() -> getRoles(rb.req, userName)));
     initContext(rb, context);
     prepare(rb, context);
   }
 
   protected void initContext(ResponseBuilder rb, QueryAuthorizationContext context) throws IOException {
-
   }
 
   protected void prepare(ResponseBuilder rb, QueryAuthorizationContext context) throws IOException {
@@ -122,5 +122,4 @@ public abstract class QueryAuthorizationComponentBase extends SearchComponent {
               " rejected due to SentryUserException: ", e);
     }
   }
-
 }
